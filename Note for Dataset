@@ -1,0 +1,24 @@
+Dataset
+
+We follow Krishna et al. (2017) to create temporally annotated sentences where each task is divided into two steps:
+(i) describing the video in multiple sen- tences, covering objects, situations and important details of the video; 
+(ii) aligning each sentence in the paragraph with the corresponding timestamps in the video.
+
+
+Baseline Captioning Models
+We explore learning to caption the videos using ground truth video segments.
+Image Captioning Models. To understand if the temporal component of the video is contributing to the description, we trained image captioning models on a frame sampled from the middle of the each segment of a video. We use the Show and Tell (Vinyals et al., 2015) image captioning architecture to generate captions. 
+
+Video Captioning Models. We study various video captioning models. First, we use sequence to sequence (seq-seq) recurrent neural network (RNN) model which has a two-layer encoder RNN to encode video features and a decoder RNN to generate descriptions. In the seq-seq approach we treat each description/segment individually and use an RNN decoder to describe each segment of the video, similar to Venugopalan et al. (2015), but using Gated Recurrent Units, GRUs, (Cho et al., 2014) for both the encoder and decoder.
+
+In most videos, events are correlated with previous and future events. To capture such contextual correlations, we incorporate context from previous segment description into the captioning module. We build a model (seq-seq + context) which takes current segment video features and hidden representation of previous segment’s sentence generation RNN at every timestamp in the decoder. For a given video segment, with hidden encoded video representation h v i and hidden representation of previous segment h s i−1 , the concatenation of (h v i , h s i−1 ) is fed as input to the decoder that describes the segment (shown in Figure 3). Prior work has shown using previous video context has improved generated captions (Krishna et al., 2017).
+
+ 
+For the image caption ing models, we used features extracted from pretrained ResNet-152 on ImageNet (He et al., 2016). 
+For video captioning models we extract features from pre-trained 3D convolution ResNext-101 architecture trained on Kinetics (Kay et al., 2017), denoted as R3D, which achieved state-of-the-art results on various activity recognition tasks (Hara et al., 2018). 
+Since a significant percentage of our videos has objects other than humans (e.g., animals) we also experiment with image-video fusion features(denoted by RNEXT, R3D) i.e., concatenation of ResNext-101 features extracted from pre-trained ImageNet with R3D features described above. 
+We extract image features from the same frames which were used to extract R3D features.
+commonly-used evaluation metrics: BLEU{3,4}, METEOR, ROUGE-L, and CIDEr following previous works of image and video captioning (Papineni et al., 2002; Lin, 2004; Banerjee and Lavie, 2005; Vedantam et al., 2015).
+
+
+In Table 5, we present the performance of our baseline models on VideoStory test dataset. We observe that models that consider context (seqseq+context) from the previously generated sentence have better performance than the corresponding models without context (seq-seq), with both 3D convolution based features (R3D) as well as image-video fusion features (RNEXT,R3D). This indicates that our model benefited from contextual information, and that sentences in our stories are contextual, rather than independent. To validate the strength of our baseline model, we train our best performing model on ActivityNet Captions. It achieves 10.92 (METEOR) and 43.42 (CIDEr) on the val set, close to state-of-the-art results of 11.06 and 44.71 by Zhou et al. (2018b), indicating that it is a strong baseline. However, when evaluating our ActivityNet model on our VideoStory dataset (Table 5, last row), we see significantly lower performance compared to a model trained on our dataset, highlighting the complementary nature of our dataset. Our image only (single frame) model has the lowest scores across all metrics suggesting that a single image is not enough to generate contextual descriptions. We observed that our fusion models consistently outperform models with video-only R3D features, indicating features extracted using pre-trained ImageNet complement activity based R3D features. We show qualitative results from the variants of our models in Table 4. We observe that single frame models tend to repeat same captions and seq-seq model without context repeats phrases in the descriptions.
